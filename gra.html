@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Gra w rzut do kosza</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+    }
+
+    canvas {
+      display: block;
+      background-color: #a2d5f2;
+    }
+
+    #punkty, #poziom, #czas, #diamenty, #komunikat {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 8px 18px;
+      font-size: 20px;
+      border-radius: 10px;
+      font-family: Arial, sans-serif;
+      z-index: 2;
+    }
+
+    #punkty { top: 10px; }
+    #poziom { top: 50px; }
+    #czas   { top: 90px; }
+    #diamenty { top: 130px; }
+
+    #komunikat {
+      top: 180px;
+      font-size: 30px;
+      font-weight: bold;
+      display: none;
+      text-align: center;
+      color: #e74c3c;
+    }
+
+    #restartBtn {
+      position: absolute;
+      top: 240px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 20px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background-color: #3498db;
+      color: white;
+      cursor: pointer;
+      display: none;
+      z-index: 3;
+    }
+
+    #restartBtn:hover {
+      background-color: #2980b9;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="gra"></canvas>
+<div id="punkty">Punkty: 0</div>
+<div id="poziom">Poziom: 1</div>
+<div id="czas">Czas: 45</div>
+<div id="diamenty">Diamenty: 0 💎</div>
+<div id="komunikat"></div>
+<button id="restartBtn">Zagraj ponownie</button>
+
+<script>
+  const canvas = document.getElementById("gra");
+  const ctx = canvas.getContext("2d");
+
+  const licznik = document.getElementById("punkty");
+  const poziomEl = document.getElementById("poziom");
+  const czasEl = document.getElementById("czas");
+  const komunikat = document.getElementById("komunikat");
+  const diamentyEl = document.getElementById("diamenty");
+  const restartBtn = document.getElementById("restartBtn");
+
+  let punkty = 0;
+  let poziom = 1;
+  let czas = 45;
+  let graTrwa = true;
+  let timer;
+
+  let restartyZaDarmo = 3;
+  let diamenty = 0;
+
+  const pilka = {
+    x: 100,
+    y: 400,
+    radius: 20,
+    isDragging: false,
+    vx: 0,
+    vy: 0
+  };
+
+  const kosz = {
+    x: 600,
+    y: 200,
+    width: 60,
+    height: 10,
+    predkosc: 2
+  };
+
+  function ustawRozmiarCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    pilka.y = canvas.height - 100;
+  }
+
+  window.addEventListener("resize", ustawRozmiarCanvas);
+  ustawRozmiarCanvas();
+
+  canvas.addEventListener("mousedown", (e) => {
+    if (!graTrwa) return;
+    const dx = e.offsetX - pilka.x;
+    const dy = e.offsetY - pilka.y;
+    if (dx * dx + dy * dy <= pilka.radius * pilka.radius) {
+      pilka.isDragging = true;
+    }
+  });
+
+  canvas.addEventListener("mouseup", (e) => {
+    if (!graTrwa) return;
+    if (pilka.isDragging) {
+      pilka.vx = (e.offsetX - pilka.x) / 10;
+      pilka.vy = (e.offsetY - pilka.y) / 10;
+      pilka.isDragging = false;
+    }
+  });
+
+  canvas.addEventListener("mousemove", (e) => {
+    if (!graTrwa) return;
+    if (pilka.isDragging) {
+      pilka.x = e.offsetX;
+      pilka.y = e.offsetY;
+    }
+  });
+
+  function rysujKosz() {
+    kosz.width = Math.max(20, 60 - (poziom - 1) * 10);
+    if (poziom >= 2) {
+      kosz.x += kosz.predkosc;
+      if (kosz.x <= 100 || kosz.x + kosz.width >= canvas.width - 100) {
+        kosz.predkosc *= -1;
+      }
+    } else {
+      kosz.x = canvas.width - 200;
+    }
+
+    ctx.fillStyle = "#ccc";
+    ctx.fillRect(kosz.x - 20, kosz.y - 50, 100, 60);
+
+    ctx.beginPath();
+    ctx.strokeStyle = "red";
+    ctx.lineWidth = 4;
+    ctx.arc(kosz.x + kosz.width / 2, kosz.y, 30, 0, Math.PI, false);
+    ctx.stroke();
+  }
+
+  function rysujPilke() {
+    ctx.beginPath();
+    ctx.arc(pilka.x, pilka.y, pilka.radius, 0, Math.PI * 2);
+    ctx.fillStyle = "orange";
+    ctx.fill();
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  function ustawCzasDlaPoziomu() {
+    czas = 45 + (poziom - 1) * 15;
+    czasEl.textContent = "Czas: " + czas;
+  }
+
+  function startLicznik() {
+    clearInterval(timer);
+    czasEl.textContent = "Czas: " + czas;
+    timer = setInterval(() => {
+      if (!graTrwa) return;
+      czas--;
+      czasEl.textContent = "Czas: " + czas;
+      if (czas <= 0) {
+        graTrwa = false;
+        pokazKomunikat("Spróbuj jeszcze raz! 😢", "#e74c3c");
+        clearInterval(timer);
+      }
+    }, 1000);
+  }
+
+  function sprawdzNowyPoziom() {
+    const nowyPoziom = Math.floor(punkty / 10) + 1;
+    if (nowyPoziom > poziom) {
+      poziom = nowyPoziom;
+      diamenty += 15;
+      ustawCzasDlaPoziomu(); // nowy czas dla nowego poziomu
+      diamentyEl.textContent = "Diamenty: " + diamenty + " 💎";
+    }
+    poziomEl.textContent = "Poziom: " + poziom;
+    czasEl.textContent = "Czas: " + czas;
+  }
+
+  function pokazKomunikat(tresc, kolor) {
+    komunikat.textContent = tresc;
+    komunikat.style.color = kolor;
+    komunikat.style.display = "block";
+    restartBtn.style.display = "inline-block";
+  }
+
+  function rysuj() {
+    if (!graTrwa) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#4CAF50";
+    ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+
+    rysujKosz();
+    rysujPilke();
+
+    if (!pilka.isDragging) {
+      pilka.x += pilka.vx;
+      pilka.y += pilka.vy;
+      pilka.vy += 0.5;
+
+      if (pilka.y + pilka.radius > canvas.height) {
+        pilka.y = canvas.height - pilka.radius;
+        pilka.vy *= -0.7;
+        pilka.vx *= 0.7;
+      }
+
+      if (
+        pilka.x > kosz.x &&
+        pilka.x < kosz.x + kosz.width &&
+        pilka.y > kosz.y &&
+        pilka.y < kosz.y + kosz.height &&
+        pilka.vy > 0
+      ) {
+        punkty += 2;
+        licznik.textContent = "Punkty: " + punkty;
+        pilka.x = 100;
+        pilka.y = canvas.height - 100;
+        pilka.vx = 0;
+        pilka.vy = 0;
+
+        if (punkty >= 50) {
+          graTrwa = false;
+          pokazKomunikat("Brawo, wygrałeś! 🏆", "green");
+          clearInterval(timer);
+          return;
+        }
+
+        sprawdzNowyPoziom();
+      }
+    }
+
+    requestAnimationFrame(rysuj);
+  }
+
+  function zresetujGre() {
+    graTrwa = true;
+
+    pilka.x = 100;
+    pilka.y = canvas.height - 100;
+    pilka.vx = 0;
+    pilka.vy = 0;
+
+    komunikat.style.display = "none";
+    restartBtn.style.display = "none";
+
+    ustawCzasDlaPoziomu();
+    sprawdzNowyPoziom();
+    rysuj();
+    startLicznik();
+  }
+
+  restartBtn.addEventListener("click", () => {
+    if (restartyZaDarmo > 0) {
+      restartyZaDarmo--;
+      ustawCzasDlaPoziomu();
+      zresetujGre();
+    } else if (diamenty >= 30) {
+      diamenty -= 30;
+      diamentyEl.textContent = "Diamenty: " + diamenty + " 💎";
+      ustawCzasDlaPoziomu();
+      zresetujGre();
+    } else {
+      komunikat.textContent = "Za mało diamentów! 💎";
+      komunikat.style.color = "#c0392b";
+      restartBtn.style.display = "none";
+    }
+  });
+
+  licznik.textContent = "Punkty: " + punkty;
+  diamentyEl.textContent = "Diamenty: " + diamenty + " 💎";
+  ustawCzasDlaPoziomu();
+  sprawdzNowyPoziom();
+  rysuj();
+  startLicznik();
+</script>
+
+</body>
+</html>

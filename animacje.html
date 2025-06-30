@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Animacje z piłką do koszykówki</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #fff0e0;
+      font-family: 'Poppins', sans-serif;
+      color: #333;
+      padding: 0;
+      margin: 0;
+      text-align: center;
+    }
+
+    nav {
+      background-color: #d35400;
+      padding: 15px;
+      text-align: center;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin: 0 15px;
+      font-size: 18px;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    .content {
+      padding: 20px;
+    }
+
+    h1 {
+      color: #d35400;
+    }
+
+    .boisko {
+      position: relative;
+      width: 100%;
+      height: 200px;
+      border: 2px dashed #e67e22;
+      margin-bottom: 40px;
+      overflow: hidden;
+      background-color: #fbeec1;
+    }
+
+    .pilka {
+      width: 80px;
+      height: 80px;
+      background-image: url('https://upload.wikimedia.org/wikipedia/commons/7/7a/Basketball.png');
+      background-size: cover;
+      position: absolute;
+    }
+
+    .skok {
+      left: 50px;
+      animation: skok 2s infinite ease-in-out;
+    }
+
+    @keyframes skok {
+      0% { top: 120px; }
+      50% { top: 10px; }
+      100% { top: 120px; }
+    }
+
+    .lot {
+      top: 20px;
+      animation: lot 4s infinite linear;
+    }
+
+    @keyframes lot {
+      0% { left: -100px; }
+      100% { left: 100%; }
+    }
+
+    .obrot {
+      top: 100px;
+      left: 150px;
+      animation: obrot 3s infinite linear;
+    }
+
+    @keyframes obrot {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    footer {
+      margin-top: 40px;
+      padding: 15px;
+      background-color: #fbeec1;
+      border-top: 2px solid #e67e22;
+      text-align: center;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html">🏠 Strona główna</a>
+    <a href="zasady.html">📘 Zasady gry</a>
+    <a href="animacje.html">🏀 Animacje</a>
+    <a href="gra.html">🎮 Gra</a>
+   </nav>
+
+  <div class="content">
+    <h1>Animacje z piłką do koszykówki</h1>
+
+    <div class="boisko">
+      <div class="pilka skok"></div>
+    </div>
+
+    <div class="boisko">
+      <div class="pilka lot"></div>
+    </div>
+
+    <div class="boisko">
+      <div class="pilka obrot"></div>
+    </div>
+  </div>
+
+  <footer>
+    Stronę stworzyła Maja 😊
+  </footer>
+
+</body>
+</html>
+
+
+

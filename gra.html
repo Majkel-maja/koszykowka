@@ -61,6 +61,28 @@
     #restartBtn:hover {
       background-color: #2980b9;
     }
+
+    .przyciski-gorne {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 100;
+    }
+
+    .przyciski-gorne button {
+      background-color: rgba(0, 0, 0, 0.4);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      padding: 6px 12px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+
+    .przyciski-gorne button:hover {
+      background-color: rgba(0, 0, 0, 0.6);
+    }
   </style>
 </head>
 <body>
@@ -73,6 +95,12 @@
 <div id="komunikat"></div>
 <button id="restartBtn">Zagraj ponownie</button>
 
+<!-- PRZYCISKI U GÓRY PO PRAWEJ -->
+<div class="przyciski-gorne">
+  <button id="pauzaBtn">⏸️</button>
+  <button onclick="window.location.href='index.html'">❌</button>
+</div>
+
 <script>
   const canvas = document.getElementById("gra");
   const ctx = canvas.getContext("2d");
@@ -83,6 +111,7 @@
   const komunikat = document.getElementById("komunikat");
   const diamentyEl = document.getElementById("diamenty");
   const restartBtn = document.getElementById("restartBtn");
+  const pauzaBtn = document.getElementById("pauzaBtn");
 
   let punkty = 0;
   let poziom = 1;
@@ -196,12 +225,24 @@
     }, 1000);
   }
 
+  pauzaBtn.addEventListener("click", () => {
+    graTrwa = !graTrwa;
+    if (!graTrwa) {
+      clearInterval(timer);
+      pauzaBtn.innerText = "▶️";
+    } else {
+      startLicznik();
+      rysuj();
+      pauzaBtn.innerText = "⏸️";
+    }
+  });
+
   function sprawdzNowyPoziom() {
     const nowyPoziom = Math.floor(punkty / 10) + 1;
     if (nowyPoziom > poziom) {
       poziom = nowyPoziom;
       diamenty += 15;
-      ustawCzasDlaPoziomu(); // nowy czas dla nowego poziomu
+      ustawCzasDlaPoziomu();
       diamentyEl.textContent = "Diamenty: " + diamenty + " 💎";
     }
     poziomEl.textContent = "Poziom: " + poziom;
